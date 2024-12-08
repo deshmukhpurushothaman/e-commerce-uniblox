@@ -14,24 +14,7 @@
 import 'dotenv/config';
 import mongoose from 'mongoose';
 
-// DB CONFIGS
-const dbHost = process.env.DB_HOSTNAME;
-const dbUserName = process.env.DB_USERNAME;
-const dbPassword = process.env.DB_PASSWORD;
-const dbName = process.env.DB_NAME;
-// const mongoUrl =
-//   'mongodb://' +
-//   dbUserName +
-//   ':' +
-//   dbPassword +
-//   '@' +
-//   dbHost +
-//   '/' +
-//   dbName +
-//   '?' +
-//   'retryWrites=true&w=majority';
-
-const mongoUrl = 'mongodb://localhost:27017/e-commerce';
+const mongoUrl = process.env.DATABASE_CONNECTION_STRING;
 
 // MONGODB CONNECTION & Admin cred
 export const connectDB = async function () {
