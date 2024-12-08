@@ -15,8 +15,8 @@ import { Document, model, Schema } from 'mongoose';
 export interface ProductDocument extends Document {
   name: string;
   price: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const ProductSchema = new Schema(

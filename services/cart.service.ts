@@ -1,17 +1,6 @@
-/**********************************************************************
- * Changelog
- * All notable changes to this project will be documented in this file.
- **********************************************************************
- *
- * Author            : Deshmukh P
- *
- * Date created      : 08/12/2024
- *
- * Purpose           : Cart Services
- **********************************************************************/
-
 import { DiscountCodeModel } from '../models/discount.model';
 import { CartModel } from '../models/cart.model';
+import { CartItemDocument, CartItemModel } from '../models/cartitem.model'; // Import CartItemModel
 import { CartDocument } from '../models/cart.model';
 import { CART_ITEM_STATUS } from '../utils/contants';
 import { OrderModel } from '../models/order.model';
@@ -24,7 +13,7 @@ import { ProductModel } from '../models/product.model';
  */
 export const getNotProcessedCartItems = async (): Promise<CartDocument[]> => {
   try {
-    return CartModel.find({ status: CART_ITEM_STATUS.Not_processed });
+    return CartItemModel.find({ status: CART_ITEM_STATUS.Not_processed });
   } catch (error) {
     console.error('Error fetching unprocessed cart items:', error);
     throw new Error('Error fetching cart items');
@@ -34,16 +23,18 @@ export const getNotProcessedCartItems = async (): Promise<CartDocument[]> => {
 /**
  * Add a product to the cart
  * Adds a product to the cart with the specified details (quantity, price, etc.).
+ * @param cartId - The ID of the cart
  * @param productId - The ID of the product to add
  * @param quantity - The quantity of the product to add
  * @param purchasePrice - The purchase price of the product
- * @returns {Promise<CartDocument>} The added cart item
+ * @returns {Promise<CartItemDocument>} The added cart item
  */
 export const addProductToCart = async (
+  cartId: string,
   productId: string,
   quantity: number,
   purchasePrice: number
-): Promise<CartDocument> => {
+): Promise<CartItemDocument> => {
   try {
     // Check if the product exists
     const product = await ProductModel.findById(productId);
@@ -56,7 +47,8 @@ export const addProductToCart = async (
     const discountedPrice = totalPrice * 0.9; // Apply 10% discount if eligible (adjust based on your business logic)
 
     // Create a new cart item
-    const newCartItem = new CartModel({
+    const newCartItem = new CartItemModel({
+      cart: cartId,
       product: productId,
       quantity,
       purchasePrice,
@@ -68,6 +60,15 @@ export const addProductToCart = async (
     // Save the cart item to the database
     await newCartItem.save();
 
+    // Update the cart total price
+    const cart = await CartModel.findById(cartId);
+    if (!cart) {
+      throw new Error('Cart not found');
+    }
+    cart.items.push(newCartItem.id); // Add the cart item to the cart
+    cart.totalPrice += newCartItem.totalPrice;
+    await cart.save();
+
     return newCartItem;
   } catch (error) {
     console.error('Error adding product to cart:', error);
@@ -78,21 +79,35 @@ export const addProductToCart = async (
 /**
  * Update the quantity of a cart item
  * Updates the quantity for an existing cart item.
+ * @param cartId - The ID of the cart
  * @param cartItemId - The ID of the cart item
  * @param quantity - The new quantity
- * @returns {Promise<CartDocument | null>} The updated cart item
+ * @returns {Promise<CartItemDocument | null>} The updated cart item
  */
 export const updateCartItemQuantity = async (
-  productId: string,
+  cartId: string,
+  cartItemId: string,
   quantity: number
-): Promise<CartDocument | null> => {
+): Promise<CartItemDocument | null> => {
   try {
-    const updatedCartItem = await CartModel.findByIdAndUpdate(
-      { product: productId },
-      { quantity },
-      { new: true }
-    );
-    return updatedCartItem;
+    const cartItem = await CartItemModel.findById(cartItemId);
+    if (!cartItem) throw new Error('Cart item not found');
+
+    const priceDifference =
+      cartItem.purchasePrice * (quantity - cartItem.quantity);
+    cartItem.quantity = quantity;
+    cartItem.totalPrice = cartItem.purchasePrice * quantity;
+    cartItem.discountedPrice = cartItem.totalPrice * 0.9; // Adjust discounted price
+
+    await cartItem.save();
+
+    // Update the cart's total price
+    const cart = await CartModel.findById(cartId);
+    if (!cart) throw new Error('Cart not found');
+    cart.totalPrice += priceDifference;
+    await cart.save();
+
+    return cartItem;
   } catch (error) {
     console.error('Error updating cart item:', error);
     throw new Error('Error updating cart item');
@@ -102,15 +117,30 @@ export const updateCartItemQuantity = async (
 /**
  * Remove an item from the cart
  * Removes a cart item based on its ID.
+ * @param cartId - The ID of the cart
  * @param cartItemId - The ID of the cart item to remove
  * @returns {Promise<boolean>} true if the item was removed, false otherwise
  */
 export const removeItemFromCart = async (
+  cartId: string,
   cartItemId: string
 ): Promise<boolean> => {
   try {
-    const result = await CartModel.findByIdAndDelete(cartItemId);
-    return result !== null;
+    const cartItem = await CartItemModel.findById(cartItemId);
+    if (!cartItem) throw new Error('Cart item not found');
+
+    // Remove the item from the cart and update the cart's total price
+    const cart = await CartModel.findById(cartId);
+    if (!cart) throw new Error('Cart not found');
+
+    const removedPrice = cartItem.totalPrice;
+    cart.items = cart.items.filter((item) => item.toString() !== cartItemId); // Use array filter to remove item
+    cart.totalPrice -= removedPrice; // Recalculate total price
+    await cart.save();
+
+    await CartItemModel.deleteOne({ _id: cartItemId }); // Use deleteOne instead of remove()
+
+    return true;
   } catch (error) {
     console.error('Error removing item from cart:', error);
     throw new Error('Error removing item from cart');
@@ -118,70 +148,75 @@ export const removeItemFromCart = async (
 };
 
 /**
- * Apply discount to the cart if the discount code is valid.
- * @param cartItems - The items in the cart
- * @param discountCode - The discount code to apply
- * @returns {Promise<any>} Updated cart with discount applied
+ * Apply a discount to the cart.
+ * @param cartId - The cart ID to apply the discount to
+ * @param discountCode - The discount code
+ * @returns Updated cart with the applied discount
  */
-export const applyDiscount = async (
-  cartItems: CartDocument[],
-  discountCode: string
-): Promise<any> => {
+export const applyDiscount = async (cartId: string, discountCode: string) => {
   try {
-    const validDiscountCode = await DiscountCodeModel.findOne({
-      code: discountCode,
-      used: false,
-    });
+    // Find the cart by cartId
+    const cart = await CartModel.findById(cartId).exec();
 
-    if (!validDiscountCode) {
-      throw new Error('Invalid or used discount code.');
+    if (!cart) {
+      throw new Error('Cart not found');
     }
 
-    // Apply 10% discount to the total price of the cart
-    const totalPrice = cartItems.reduce(
-      (acc, item) => acc + item.totalPrice,
-      0
-    );
-    const discount = totalPrice * 0.1;
-    const discountedPrice = totalPrice - discount;
+    // Assuming 'discountCode' is valid and you have a method to calculate the discount
+    const discount = await getDiscountAmount(discountCode);
 
-    return { totalPrice, discount, discountedPrice };
+    // Apply the discount to the total price
+    const updatedTotalPrice = cart.totalPrice - discount;
+
+    // Update the cart with the new total price and discount values
+    cart.discount = discount; // Set the discount field
+    cart.discountedPrice = updatedTotalPrice; // Set the discounted price
+    cart.totalPrice = updatedTotalPrice; // Update the total price
+    await cart.save();
+
+    return {
+      totalPrice: cart.totalPrice,
+      discount: cart.discount,
+      discountedPrice: cart.discountedPrice,
+    };
   } catch (error) {
-    console.error('Error applying discount:', error);
-    throw new Error('Error applying discount');
+    throw new Error(`Error applying discount: ${error.message}`);
   }
 };
 
 /**
+ * Mock method to calculate discount amount from a discount code
+ * @param discountCode - Discount code
+ * @returns Discount amount
+ */
+const getDiscountAmount = async (discountCode: string): Promise<number> => {
+  // Mock discount calculation logic
+  if (discountCode === 'SUMMER20') {
+    return 20; // Discount of 20
+  }
+  return 0; // No discount for invalid code
+};
+
+/**
  * Place an order and increment the order count to check for discount eligibility.
- * @param cartItems - The items in the cart
+ * @param cartId - The ID of the cart
  * @param discountCode - The discount code to apply (if any)
  * @returns {Promise<any>} Final order with applied discount if eligible
  */
-export const checkoutCart = async (
-  cartItems: CartDocument[],
-  discountCode: string
-) => {
+export const checkoutCart = async (cartId: string, discountCode: string) => {
   try {
-    // Fetch total order count from the Orders collection
-    const orderCount = await OrderModel.countDocuments({});
+    const cart = await CartModel.findById(cartId).populate('items');
+    if (!cart) throw new Error('Cart not found');
 
-    // Check if the order qualifies for a discount (e.g., every 5th order)
-    if ((orderCount + 1) % 5 === 0) {
-      // Generate a new discount code if it's the nth order
-      await generateDiscountCode();
-    }
-
-    // Process the order here (saving to DB, changing item statuses, etc.)
+    // Apply discount if applicable
     const { totalPrice, discount, discountedPrice } = await applyDiscount(
-      cartItems,
+      cartId,
       discountCode
     );
 
-    // Save the order to the database
+    // Create the order from the cart items
     const newOrder = new OrderModel({
-      product: cartItems[0].product,
-      quantity: cartItems[0].quantity,
+      cart: cartId,
       totalPrice,
       discountCode: discountCode ? discountCode : null,
       status: 'Completed',
@@ -200,7 +235,6 @@ export const checkoutCart = async (
     throw new Error('Error during checkout');
   }
 };
-
 /**
  * Generate a discount code after every nth order
  * @returns {Promise<any>} New discount code object

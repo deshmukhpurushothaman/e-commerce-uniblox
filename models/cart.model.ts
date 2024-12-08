@@ -1,62 +1,44 @@
-/**********************************************************************
- * Changelog
- * All notable changes to this project will be documented in this file.
- **********************************************************************
- *
- * Author            : Deshmukh P
- *
- * Date created      : 08/12/2024
- *
- * Purpose           : Cart Model
- **********************************************************************
- */
 import { Document, model, Schema } from 'mongoose';
-import { CART_ITEM_STATUS } from '../utils/contants';
 
 export interface CartDocument extends Document {
-  product: Schema.Types.ObjectId;
-  quantity: number;
-  purchasePrice: number;
-  totalPrice: number;
-  discountedPrice: number;
-  status: string;
+  items: Schema.Types.ObjectId[]; // Array of CartItem references
+  totalPrice: number; // Total price of the cart, summing the total prices of items
+  status: string; // Cart status (e.g., 'active', 'abandoned', etc.)
   createdAt: Date;
   updatedAt: Date;
+  discount?: number; // Optional field for discount
+  discountedPrice?: number; // Optional field for discounted price
 }
 
-export const CartSchema = new Schema(
+const CartSchema = new Schema(
   {
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-    },
-    quantity: Number,
-    purchasePrice: {
-      type: Number,
-      default: 0,
-    },
+    items: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'CartItem', // Reference to CartItem model
+      },
+    ],
     totalPrice: {
       type: Number,
       default: 0,
-    },
-    discountedPrice: {
-      type: Number,
-      default: 0,
+      required: true, // Total price is required to track overall cart value
     },
     status: {
       type: String,
-      default: CART_ITEM_STATUS.Not_processed,
-      enum: [
-        CART_ITEM_STATUS.Not_processed,
-        CART_ITEM_STATUS.Processing,
-        CART_ITEM_STATUS.Shipped,
-        CART_ITEM_STATUS.Delivered,
-        CART_ITEM_STATUS.Cancelled,
-      ],
+      default: 'active', // Default status could be 'active'
+      enum: ['active', 'abandoned', 'completed'], // Enum values for cart status
+    },
+    discount: {
+      type: Number,
+      default: 0, // Default discount is 0
+    },
+    discountedPrice: {
+      type: Number,
+      default: 0, // Default discounted price is 0
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
   }
 );
 

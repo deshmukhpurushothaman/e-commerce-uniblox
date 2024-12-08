@@ -35,9 +35,9 @@ router.post('/add', addToCart);
 router.post('/add-item', addItemToCart);
 
 // Route to update the quantity of an item in the cart
-router.put('/update/:cartItemId', updateCartItem);
+router.put('/update/:cartId/:cartItemId', updateCartItem);
 
 // Route to remove an item from the cart
-router.delete('/remove/:cartItemId', removeCartItem);
+router.delete('/remove/:cartId/:cartItemId', removeCartItem);
 
 export default router;
