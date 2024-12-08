@@ -1,4 +1,28 @@
-import { model, Schema } from 'mongoose';
+/**********************************************************************
+ * Changelog
+ * All notable changes to this project will be documented in this file.
+ **********************************************************************
+ *
+ * Author            : Deshmukh P
+ *
+ * Date created      : 08/12/2024
+ *
+ * Purpose           : Cart Model
+ **********************************************************************
+ */
+import { Document, model, Schema } from 'mongoose';
+import { CART_ITEM_STATUS } from '../utils/contants';
+
+export interface CartDocument extends Document {
+  product: Schema.Types.ObjectId;
+  quantity: number;
+  purchasePrice: number;
+  totalPrice: number;
+  discountedPrice: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export const CartSchema = new Schema(
   {
@@ -19,10 +43,21 @@ export const CartSchema = new Schema(
       type: Number,
       default: 0,
     },
+    status: {
+      type: String,
+      default: CART_ITEM_STATUS.Not_processed,
+      enum: [
+        CART_ITEM_STATUS.Not_processed,
+        CART_ITEM_STATUS.Processing,
+        CART_ITEM_STATUS.Shipped,
+        CART_ITEM_STATUS.Delivered,
+        CART_ITEM_STATUS.Cancelled,
+      ],
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = model('Cart', CartSchema);
+export const CartModel = model<CartDocument>('Cart', CartSchema);
