@@ -7,13 +7,48 @@ import { OrderModel } from '../models/order.model';
 import { ProductModel } from '../models/product.model';
 
 /**
+ * Fetches the current cart for the user, populating items and product details.
+ * @returns {Promise<any>} A promise that resolves to the cart data with populated items and product details.
+ */
+export const getCartService = async () => {
+  try {
+    // Fetch the cart with populated items and their associated products
+    const cart = await CartModel.findOne({
+      status: { $ne: 'completed' }, // Only active carts
+    }).populate({
+      path: 'items', // Populate 'items' array
+      populate: {
+        path: 'product', // Populate 'product' inside each item
+        model: 'Product', // Specify the model for 'product'
+      },
+    });
+
+    // const cartItem = await CartItemModel.find().populate('product');
+
+    // If no cart is found, throw an error
+    if (!cart) {
+      console.log('Cart not found');
+      return null;
+    }
+
+    // Return the populated cart
+    return cart;
+  } catch (error) {
+    // Throw any errors to be handled in the controller
+    throw new Error(error.message);
+  }
+};
+
+/**
  * Get all cart items that are not processed.
  * Fetches all items with the status "Not_processed".
  * @returns {Promise<CartDocument[]>} Array of cart items
  */
-export const getNotProcessedCartItems = async (): Promise<CartDocument[]> => {
+export const getNotProcessedCartItems = async (): Promise<any[]> => {
   try {
-    return CartItemModel.find({ status: CART_ITEM_STATUS.Not_processed });
+    return CartItemModel.find({
+      status: CART_ITEM_STATUS.Not_processed,
+    }).populate('product');
   } catch (error) {
     console.error('Error fetching unprocessed cart items:', error);
     throw new Error('Error fetching cart items');
@@ -213,7 +248,13 @@ const getDiscountAmount = async (discountCode: string): Promise<number> => {
  */
 export const checkoutCart = async (cartId: string, discountCode: string) => {
   try {
-    const cart = await CartModel.findById(cartId).populate('items');
+    // const cart = await CartModel.findById(cartId).populate('items');
+    // Fetch the cart and populate the cart items along with their fields
+    const cart = await CartModel.findById(cartId).populate({
+      path: 'items',
+      model: 'CartItem',
+      select: '_id status product quantity purchasePrice totalPrice', // Explicitly include necessary fields from CartItem
+    });
     if (!cart) throw new Error('Cart not found');
 
     if (cart.status !== 'active') throw new Error('Invalid cart');
@@ -233,6 +274,17 @@ export const checkoutCart = async (cartId: string, discountCode: string) => {
       const discountDetails = await applyDiscount(cartId, discountCode);
       discount = discountDetails.discount;
       discountedPrice = discountDetails.discountedPrice;
+    }
+
+    // Update the status of all cart items to 'Processed'
+    if (cart.items && cart.items.length > 0) {
+      await Promise.all(
+        cart.items.map(async (item: any) => {
+          await CartItemModel.findByIdAndUpdate(item._id, {
+            status: CART_ITEM_STATUS.Delivered,
+          });
+        })
+      );
     }
 
     // Create the order from the cart items

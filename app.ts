@@ -41,6 +41,11 @@ export const startExpressServer = async () => {
     app.use(nocache());
     app.use(cors());
     app.use(express.json(options));
+
+    // guard against $ injections attacks in mongoDB
+    // replaces $ and.by default in body, params, query, headers
+    app.use(mongoSanitize());
+
     // This check makes sure this is a JSON parsing issue, but it might be
     // coming from any middleware, not just body-parser:
     app.use((err: any, req: any, res: any, next: any) => {

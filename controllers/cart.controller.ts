@@ -19,12 +19,24 @@ import {
   applyDiscount,
   removeItemFromCart,
   updateCartItemQuantity,
+  getCartService,
 } from '../services/cart.service';
-import { HTTP_STATUS_CODE } from '../utils/contants';
+import { CART_ITEM_STATUS, HTTP_STATUS_CODE } from '../utils/contants';
 import { CartModel } from '../models/cart.model';
 import { ProductModel } from '../models/product.model';
 import { CartItemModel } from '../models/cartitem.model';
 import { Schema } from 'mongoose';
+
+export const getCart = async (req: Request, res: Response) => {
+  try {
+    const cart = await getCartService();
+    res.status(HTTP_STATUS_CODE.OK).json({ success: true, data: cart });
+  } catch (error) {
+    res
+      .status(HTTP_STATUS_CODE.INTERNAL_SERVER)
+      .json({ success: false, message: error.message });
+  }
+};
 
 /**
  * Get all items in the cart that are not processed
@@ -49,29 +61,31 @@ export const getCartItems = async (
 /**
  * Add an item to the cart.
  * Adds a new product to the cart and updates the cart's total price, discount, and discounted price.
- * @param req - The request object, which contains cartId (optional), productId, quantity, and purchasePrice in the body.
+ * @param req - The request object, which contains productId, quantity, and purchasePrice in the body.
  * @param res - The response object to send back the updated cart and cart item.
- * @returns A response with the updated cart and the new cart item.
+ * @returns A response with the updated cart and the new or updated cart item.
  */
 export const addItemToCart = async (
   req: Request,
   res: Response
 ): Promise<any> => {
-  const { cartId, productId, quantity, purchasePrice } = req.body;
+  const { productId, quantity, purchasePrice } = req.body;
 
   try {
-    // Check if cartId is provided, if not, create a new cart
-    let cart;
-    if (cartId) {
-      cart = await CartModel.findById(cartId);
-      if (!cart) {
-        return res.status(404).json({ message: 'Cart not found' });
-      }
-    } else {
+    // Validate input
+    if (!productId || !quantity || !purchasePrice) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+
+    // Fetch the cart that is not completed
+    let cart = await CartModel.findOne({ status: { $ne: 'completed' } });
+
+    // If no active cart exists, create a new one
+    if (!cart) {
       cart = new CartModel({
         totalPrice: 0,
-        // discount: 0,
-        // discountedPrice: 0,
+        discount: 0,
+        discountedPrice: 0,
         status: 'active',
         items: [],
       });
@@ -87,29 +101,42 @@ export const addItemToCart = async (
     // Calculate total price for the new item
     const itemTotalPrice = purchasePrice * quantity;
 
-    // Create a new cart item and save it
-    const newCartItem = new CartItemModel({
+    // Check if the item already exists in the cart
+    let cartItem = await CartItemModel.findOne({
       cart: cart._id,
       product: productId,
-      quantity,
-      purchasePrice,
-      totalPrice: itemTotalPrice,
-      // discountedPrice: itemTotalPrice * 0.9, // Example: 10% discount on item
+      status: CART_ITEM_STATUS.Not_processed,
     });
-    await newCartItem.save();
 
-    // Add the new item to the cart and update the cart's total values
-    cart.items.push(newCartItem.id);
-    cart.totalPrice += itemTotalPrice;
+    // If the item exists, update the quantity and total price
+    if (cartItem) {
+      cartItem.quantity += quantity;
+      cartItem.totalPrice = cartItem.purchasePrice * cartItem.quantity;
+      await cartItem.save();
 
-    // // Calculate updated discount and discounted price for the cart
-    // const discount = cart.totalPrice * 0.1; // Example: 10% discount on cart total
-    // cart.discount = discount;
-    // cart.discountedPrice = cart.totalPrice - discount;
+      // Update the cart total price
+      cart.totalPrice += itemTotalPrice;
+    } else {
+      // Create a new cart item and save it
+      cartItem = new CartItemModel({
+        cart: cart._id,
+        product: productId,
+        quantity,
+        purchasePrice,
+        totalPrice: itemTotalPrice,
+      });
+      await cartItem.save();
 
+      // Add the new item to the cart and update the cart's total values
+      cart.items.push(cartItem.id);
+      cart.totalPrice += itemTotalPrice;
+    }
+
+    // Save the updated cart
     await cart.save();
 
-    return res.status(201).json({ cart, newCartItem });
+    // Return the updated cart and the updated cart item
+    return res.status(201).json({ cart, cartItem });
   } catch (error) {
     console.error('Error adding item to cart:', error);
     return res.status(500).json({ message: 'Failed to add item to cart' });

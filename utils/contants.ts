@@ -44,11 +44,11 @@ const HTTP_STATUS_CODE = {
 };
 
 const CART_ITEM_STATUS = {
-  Processing: 'Processing',
-  Shipped: 'Shipped',
-  Delivered: 'Delivered',
-  Cancelled: 'Cancelled',
-  Not_processed: 'Not processed',
+  Processing: 'PROCESSING',
+  Shipped: 'SHIPPED',
+  Delivered: 'DELIVERED',
+  Cancelled: 'CANCELLED',
+  Not_processed: 'NOT_PROCESSED',
 };
 
 // EXPORT MODULE

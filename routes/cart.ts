@@ -18,9 +18,12 @@ import {
   addItemToCart,
   updateCartItem,
   removeCartItem,
+  getCart,
 } from '../controllers/cart.controller';
 
 const router = express.Router();
+
+router.get('/', getCart);
 
 // Route to get all items in the cart
 router.get('/items', getCartItems);
