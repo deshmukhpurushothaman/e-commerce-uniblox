@@ -198,13 +198,15 @@ const getDiscountAmount = async (discountCode: string): Promise<number> => {
     if (!discountCoupon || discountCoupon.used) {
       return 0;
     }
+    discountCoupon.used = true;
+    discountCoupon.save();
     return 10;
   } catch (error) {}
   return 0; // No discount for invalid code
 };
 
 /**
- * Place an order and increment the order count to check for discount eligibility.
+ * Place an order and increment the order count to check for discount eligibility on every nth order.
  * @param cartId - The ID of the cart
  * @param discountCode - The discount code to apply (if any)
  * @returns {Promise<any>} Final order with applied discount if eligible
@@ -216,36 +218,53 @@ export const checkoutCart = async (cartId: string, discountCode: string) => {
 
     if (cart.status !== 'active') throw new Error('Invalid cart');
 
-    // Apply discount if applicable
-    const { totalPrice, discount, discountedPrice } = await applyDiscount(
-      cartId,
-      discountCode
-    );
+    // Count total number of previous orders
+    const totalOrders = await OrderModel.countDocuments();
+
+    // Check if the order is eligible for a discount (every nth order, e.g., 5th)
+    const nthOrder = parseInt(process.env.DISCOUNT_ORDER); // Change this value for different discount intervals
+    const isEligibleForDiscount = (totalOrders + 1) % nthOrder === 0;
+
+    let discount = 0;
+    let discountedPrice = cart.totalPrice;
+
+    if (isEligibleForDiscount) {
+      // Apply a discount if eligible
+      const discountDetails = await applyDiscount(cartId, discountCode);
+      discount = discountDetails.discount;
+      discountedPrice = discountDetails.discountedPrice;
+    }
 
     // Create the order from the cart items
     const newOrder = new OrderModel({
       cart: cartId,
-      totalPrice,
-      discountCode: discount > 0 ? discountCode : null,
+      totalPrice: cart.totalPrice,
+      discountCode: isEligibleForDiscount && discount > 0 ? discountCode : null,
+      discount,
+      discountedPrice,
       status: 'Completed',
     });
 
     await newOrder.save();
 
+    // Mark the cart as completed
     cart.status = 'completed';
     await cart.save();
 
     return {
-      totalPrice,
+      totalPrice: cart.totalPrice,
       discount,
       discountedPrice,
-      message: 'Order placed successfully',
+      message: isEligibleForDiscount
+        ? 'Order placed successfully with discount'
+        : 'Order placed successfully',
     };
   } catch (error) {
     console.error('Error during checkout:', error);
     throw new Error(error.message || 'Error during checkout');
   }
 };
+
 /**
  * Generate a discount code after every nth order
  * @returns {Promise<any>} New discount code object
