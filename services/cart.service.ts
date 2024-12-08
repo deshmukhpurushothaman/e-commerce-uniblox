@@ -1,7 +1,18 @@
+/**********************************************************************
+ * Changelog
+ * All notable changes to this project will be documented in this file.
+ **********************************************************************
+ *
+ * Author            : Deshmukh P
+ *
+ * Date created      : 08/12/2024
+ *
+ * Purpose           : Cart Services
+ **********************************************************************/
+
 import { DiscountCodeModel } from '../models/discount.model';
 import { CartModel } from '../models/cart.model';
 import { CartItemDocument, CartItemModel } from '../models/cartitem.model'; // Import CartItemModel
-import { CartDocument } from '../models/cart.model';
 import { CART_ITEM_STATUS } from '../utils/contants';
 import { OrderModel } from '../models/order.model';
 import { ProductModel } from '../models/product.model';

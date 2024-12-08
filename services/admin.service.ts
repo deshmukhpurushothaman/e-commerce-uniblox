@@ -77,16 +77,6 @@ export const getAdminStats = async (): Promise<any> => {
       },
     ]);
 
-    // Calculate the total discount amount applied across all orders
-    const totalDiscountAmount = await OrderModel.aggregate([
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$discount' },
-        },
-      },
-    ]);
-
     // Calculate the total discounted price across all orders
     const totalDiscountedPrice = await OrderModel.aggregate([
       {
@@ -105,7 +95,8 @@ export const getAdminStats = async (): Promise<any> => {
     return {
       totalItemsPurchased: totalItemsPurchased[0]?.total || 0,
       totalPurchaseAmount: totalPurchaseAmount[0]?.total || 0,
-      totalDiscountAmount: totalDiscountAmount[0]?.total || 0,
+      totalDiscountAmount:
+        totalPurchaseAmount[0]?.total - totalDiscountedPrice[0]?.total || 0,
       totalDiscountedPrice: totalDiscountedPrice[0]?.total || 0,
       discountCodes,
     };

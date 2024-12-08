@@ -14,9 +14,7 @@ import { Request, Response } from 'express';
 import {
   addProductToCart,
   checkoutCart,
-  generateDiscountCode,
   getNotProcessedCartItems,
-  applyDiscount,
   removeItemFromCart,
   updateCartItemQuantity,
   getCartService,
@@ -185,22 +183,14 @@ export const updateCartItem = async (
       0
     );
 
-    // Calculate discount and discounted price
-    // const discount = updatedTotalPrice * 0.1; // Example: 10% discount
-    // const discountedPrice = updatedTotalPrice - discount;
-
     // Update and save the cart
     cart.totalPrice = updatedTotalPrice;
-    // cart.discount = discount;
-    // cart.discountedPrice = discountedPrice;
     await cart.save();
 
     res.status(HTTP_STATUS_CODE.OK).json({
       success: true,
       data: updatedCartItem,
       cartTotalPrice: cart.totalPrice,
-      // cartDiscount: cart.discount,
-      // cartDiscountedPrice: cart.discountedPrice,
     });
   } catch (error) {
     res.status(HTTP_STATUS_CODE.INTERNAL_SERVER).json({
@@ -247,14 +237,8 @@ export const removeCartItem = async (
       0
     );
 
-    // Calculate discount and discounted price
-    // const discount = updatedTotalPrice * 0.1; // Example: 10% discount
-    // const discountedPrice = updatedTotalPrice - discount;
-
     // Update and save the cart
     cart.totalPrice = updatedTotalPrice;
-    // cart.discount = discount;
-    // cart.discountedPrice = discountedPrice;
     cart.items = cart.items.filter(
       (itemId: Schema.Types.ObjectId) => itemId.toString() !== cartItemId
     );
@@ -264,8 +248,6 @@ export const removeCartItem = async (
       success: true,
       message: 'Item removed from cart',
       cartTotalPrice: cart.totalPrice,
-      // cartDiscount: cart.discount,
-      // cartDiscountedPrice: cart.discountedPrice,
     });
   } catch (error) {
     res.status(HTTP_STATUS_CODE.INTERNAL_SERVER).json({

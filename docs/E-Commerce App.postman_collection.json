@@ -316,7 +316,42 @@
       "description": "API for managing the user's cart, including adding, updating, removing items, and processing checkout.",
       "item": [
         {
-          "name": "Get Cart",
+          "name": "Get Cart Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cart",
+              "host": ["{{base_url}}"],
+              "path": ["cart"]
+            },
+            "description": "This GET request fetches the detailed information of the user's cart, including all items, prices, and status."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/cart",
+                  "host": ["{{base_url}}"],
+                  "path": ["cart"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"6755a8424ae2a70be5f177f9\",\n        \"items\": [\n            {\n                \"_id\": \"6755a8424ae2a70be5f177fd\",\n                \"cart\": \"6755a8424ae2a70be5f177f9\",\n                \"product\": {\n                    \"_id\": \"67555b3fa2a7eb4838614612\",\n                    \"name\": \"Samsung Galaxy M34\",\n                    \"price\": 20000,\n                    \"createdAt\": \"2024-12-08T08:39:27.699Z\",\n                    \"updatedAt\": \"2024-12-08T08:40:51.822Z\",\n                    \"__v\": 0\n                },\n                \"quantity\": 1,\n                \"purchasePrice\": 20000,\n                \"totalPrice\": 20000,\n                \"status\": \"NOT_PROCESSED\",\n                \"createdAt\": \"2024-12-08T14:08:02.380Z\",\n                \"updatedAt\": \"2024-12-08T14:08:02.380Z\",\n                \"__v\": 0\n            }\n        ],\n        \"totalPrice\": 20000,\n        \"status\": \"active\",\n        \"createdAt\": \"2024-12-08T14:08:02.376Z\",\n        \"updatedAt\": \"2024-12-08T14:08:02.381Z\",\n        \"__v\": 1\n    }\n}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Get Cart Items",
           "request": {
             "method": "GET",
             "header": [],
