@@ -21,10 +21,14 @@ import mongoSanitize from 'express-mongo-sanitize';
 import useragent from 'express-useragent';
 import nocache from 'nocache';
 import orders from './routes/orders';
+import products from './routes/product';
+import { connectDB } from './utils/dbConnect/connect';
 
 export const startExpressServer = async () => {
   try {
     const app = express();
+
+    await connectDB();
 
     const options = {
       limit: '1kb',
@@ -68,6 +72,7 @@ export const startExpressServer = async () => {
     });
 
     app.use('/api/orders', orders);
+    app.use('/api/products', products);
 
     const PORT = process.env.PORT || 8000;
 
