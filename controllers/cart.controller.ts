@@ -11,7 +11,15 @@
  **********************************************************************/
 
 import { Request, Response } from 'express';
-import * as cartService from '../services/cart.service';
+import {
+  addProductToCart,
+  checkoutCart,
+  generateDiscountCode,
+  getNotProcessedCartItems,
+  applyDiscount,
+  removeItemFromCart,
+  updateCartItemQuantity,
+} from '../services/cart.service';
 import { HTTP_STATUS_CODE } from '../utils/contants';
 
 /**
@@ -25,7 +33,7 @@ export const getCartItems = async (
   res: Response
 ): Promise<void> => {
   try {
-    const cartItems = await cartService.getNotProcessedCartItems();
+    const cartItems = await getNotProcessedCartItems();
     res.status(HTTP_STATUS_CODE.OK).json({ success: true, data: cartItems });
   } catch (error) {
     res
@@ -45,7 +53,11 @@ export const addItemToCart = async (
   res: Response
 ): Promise<void> => {
   try {
-    const cartItem = await cartService.addItemToCart(req.body);
+    const cartItem = await addProductToCart(
+      req.body.productId,
+      req.body.quantity,
+      req.body.purchasePrice
+    );
     res
       .status(HTTP_STATUS_CODE.CREATED)
       .json({ success: true, data: cartItem });
@@ -67,13 +79,19 @@ export const updateCartItem = async (
   res: Response
 ): Promise<void> => {
   try {
-    const updatedCartItem = await cartService.updateCartItemQuantity(
-      req.params.cartItemId,
+    const updatedCartItem = await updateCartItemQuantity(
+      req.params.productId,
       req.body.quantity
     );
-    res
-      .status(HTTP_STATUS_CODE.OK)
-      .json({ success: true, data: updatedCartItem });
+    if (updatedCartItem) {
+      res
+        .status(HTTP_STATUS_CODE.OK)
+        .json({ success: true, data: updatedCartItem });
+    } else {
+      res
+        .status(HTTP_STATUS_CODE.NOT_FOUND)
+        .json({ success: false, message: 'Cart item not found' });
+    }
   } catch (error) {
     res
       .status(HTTP_STATUS_CODE.INTERNAL_SERVER)
@@ -92,7 +110,7 @@ export const removeCartItem = async (
   res: Response
 ): Promise<void> => {
   try {
-    const result = await cartService.removeItemFromCart(req.params.cartItemId);
+    const result = await removeItemFromCart(req.params.cartItemId);
     if (result) {
       res
         .status(HTTP_STATUS_CODE.OK)
@@ -115,13 +133,12 @@ export const removeCartItem = async (
  * @param req
  * @param res
  */
-export const checkoutCart = async (
+export const checkoutCartHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    // Get cart items from the request body
-    const cartItems = req.body.cartItems;
+    const { cartItems, discountCode } = req.body;
 
     if (!cartItems || cartItems.length === 0) {
       res
@@ -129,11 +146,8 @@ export const checkoutCart = async (
         .json({ success: false, message: 'Cart is empty' });
     }
 
-    // Get discount code if available
-    const discountCode = req.body.discountCode || null;
-
     // Call the service method to process the checkout
-    const result = await cartService.checkoutCart(cartItems, discountCode);
+    const result = await checkoutCart(cartItems, discountCode);
 
     // Return response with the checkout result
     res.status(HTTP_STATUS_CODE.CREATED).json({ success: true, data: result });
@@ -141,5 +155,39 @@ export const checkoutCart = async (
     res
       .status(HTTP_STATUS_CODE.INTERNAL_SERVER)
       .json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Add a product to the cart
+ * @param req - The request object containing product and quantity
+ * @param res - The response object
+ */
+export const addToCart = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productId, quantity, purchasePrice } = req.body;
+
+    // Validate input (optional)
+    if (!productId || !quantity || !purchasePrice) {
+      res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({
+        success: false,
+        message: 'Product ID, quantity, and purchase price are required.',
+      });
+    }
+
+    // Call the service to add the product to the cart
+    const result = await addProductToCart(productId, quantity, purchasePrice);
+
+    // Return the result to the client
+    res.status(HTTP_STATUS_CODE.CREATED).json({
+      success: true,
+      message: 'Product added to cart successfully.',
+      data: result,
+    });
+  } catch (error) {
+    res.status(HTTP_STATUS_CODE.INTERNAL_SERVER).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

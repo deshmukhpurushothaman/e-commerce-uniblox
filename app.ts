@@ -22,6 +22,8 @@ import useragent from 'express-useragent';
 import nocache from 'nocache';
 import orders from './routes/orders';
 import products from './routes/product';
+import cart from './routes/cart';
+import admin from './routes/admin';
 import { connectDB } from './utils/dbConnect/connect';
 
 export const startExpressServer = async () => {
@@ -73,6 +75,8 @@ export const startExpressServer = async () => {
 
     app.use('/api/orders', orders);
     app.use('/api/products', products);
+    app.use('/api/cart', cart);
+    app.use('/api/admin', admin);
 
     const PORT = process.env.PORT || 8000;
 
