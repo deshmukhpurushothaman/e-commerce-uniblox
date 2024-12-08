@@ -226,7 +226,7 @@ export const checkoutCart = async (cartId: string, discountCode: string) => {
     const newOrder = new OrderModel({
       cart: cartId,
       totalPrice,
-      discountCode: discountCode ? discountCode : null,
+      discountCode: discount > 0 ? discountCode : null,
       status: 'Completed',
     });
 

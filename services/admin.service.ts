@@ -33,30 +33,84 @@ export const generateDiscountCode = async (): Promise<string> => {
 };
 
 /**
- * Get admin statistics like item counts, total purchase amount, etc.
+ * Get admin statistics like item counts, total purchase amount, discounts applied, and discounted price.
+ * @returns {Promise<any>} An object containing admin statistics.
  */
 export const getAdminStats = async (): Promise<any> => {
   try {
+    // Calculate the total items purchased (based on cart item quantities from all carts in orders)
     const totalItemsPurchased = await OrderModel.aggregate([
-      { $unwind: '$items' },
-      { $group: { _id: null, total: { $sum: '$items.quantity' } } },
+      {
+        $lookup: {
+          from: 'carts', // Collection name for Cart
+          localField: 'cart',
+          foreignField: '_id',
+          as: 'cartDetails',
+        },
+      },
+      { $unwind: '$cartDetails' },
+      { $unwind: '$cartDetails.items' },
+      {
+        $lookup: {
+          from: 'cartitems', // Collection name for CartItems
+          localField: 'cartDetails.items',
+          foreignField: '_id',
+          as: 'cartItemsDetails',
+        },
+      },
+      { $unwind: '$cartItemsDetails' },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$cartItemsDetails.quantity' },
+        },
+      },
     ]);
 
+    // Calculate the total purchase amount across all orders
     const totalPurchaseAmount = await OrderModel.aggregate([
-      { $unwind: '$items' },
-      { $group: { _id: null, total: { $sum: '$items.totalPrice' } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$totalPrice' },
+        },
+      },
     ]);
 
-    const discountCodes: any[] = []; // Logic to fetch generated discount codes if saved in the database
-    const totalDiscountAmount = 0; // Logic to calculate total discount amount if applicable
+    // Calculate the total discount amount applied across all orders
+    const totalDiscountAmount = await OrderModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$discount' },
+        },
+      },
+    ]);
+
+    // Calculate the total discounted price across all orders
+    const totalDiscountedPrice = await OrderModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$discountedPrice' },
+        },
+      },
+    ]);
+
+    // Fetch unique discount codes used in orders
+    const discountCodes = await OrderModel.distinct('discountCode', {
+      discountCode: { $ne: null },
+    });
 
     return {
       totalItemsPurchased: totalItemsPurchased[0]?.total || 0,
       totalPurchaseAmount: totalPurchaseAmount[0]?.total || 0,
+      totalDiscountAmount: totalDiscountAmount[0]?.total || 0,
+      totalDiscountedPrice: totalDiscountedPrice[0]?.total || 0,
       discountCodes,
-      totalDiscountAmount,
     };
   } catch (error) {
+    console.error('Error fetching admin stats:', error);
     throw new Error('Error fetching admin stats');
   }
 };
