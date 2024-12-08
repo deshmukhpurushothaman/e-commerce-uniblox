@@ -120,7 +120,22 @@ export const checkoutCart = async (
   res: Response
 ): Promise<void> => {
   try {
-    const result = await cartService.checkoutCart();
+    // Get cart items from the request body
+    const cartItems = req.body.cartItems;
+
+    if (!cartItems || cartItems.length === 0) {
+      res
+        .status(HTTP_STATUS_CODE.BAD_REQUEST)
+        .json({ success: false, message: 'Cart is empty' });
+    }
+
+    // Get discount code if available
+    const discountCode = req.body.discountCode || null;
+
+    // Call the service method to process the checkout
+    const result = await cartService.checkoutCart(cartItems, discountCode);
+
+    // Return response with the checkout result
     res.status(HTTP_STATUS_CODE.CREATED).json({ success: true, data: result });
   } catch (error) {
     res

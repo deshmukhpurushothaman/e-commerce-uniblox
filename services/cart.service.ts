@@ -10,9 +10,11 @@
  * Purpose           : Cart Services
  **********************************************************************/
 
+import { DiscountCodeModel } from '../models/discount.model';
 import { CartModel } from '../models/cart.model';
 import { CartDocument } from '../models/cart.model';
 import { CART_ITEM_STATUS } from '../utils/contants';
+import { OrderModel } from '../models/order.model';
 
 /**
  * Get all cart items that are not processed.
@@ -91,21 +93,101 @@ export const removeItemFromCart = async (
     throw new Error('Error removing item from cart');
   }
 };
+/**
+ * Apply discount to the cart if the discount code is valid.
+ * @param cartItems
+ * @param discountCode
+ * @returns {Promise<any>} Updated cart with discount applied
+ */
+export const applyDiscount = async (
+  cartItems: CartDocument[],
+  discountCode: string
+): Promise<any> => {
+  try {
+    const validDiscountCode = await DiscountCodeModel.findOne({
+      code: discountCode,
+      used: false,
+    });
+
+    if (!validDiscountCode) {
+      throw new Error('Invalid or used discount code.');
+    }
+
+    // Apply 10% discount to the total price of the cart
+    const totalPrice = cartItems.reduce(
+      (acc, item) => acc + item.totalPrice,
+      0
+    );
+    const discount = totalPrice * 0.1;
+    const discountedPrice = totalPrice - discount;
+
+    return { totalPrice, discount, discountedPrice };
+  } catch (error) {
+    console.error('Error applying discount:', error);
+    throw new Error('Error applying discount');
+  }
+};
 
 /**
- * Checkout the cart
- * Updates the status of all cart items to "Processing".
- * @returns {Promise<any>} Confirmation of the checkout
+ * Place an order and increment the order count to check for discount eligibility.
+ * @param cartItems
+ * @param discountCode
+ * @returns {Promise<any>} Final order with applied discount if eligible
  */
-export const checkoutCart = async (): Promise<any> => {
+export const checkoutCart = async (
+  cartItems: CartDocument[],
+  discountCode: string
+) => {
   try {
-    const result = await CartModel.updateMany(
-      { status: CART_ITEM_STATUS.Not_processed },
-      { status: CART_ITEM_STATUS.Processing }
+    // Fetch total order count from the Orders collection
+    const orderCount = await OrderModel.countDocuments({});
+
+    // Check if the order qualifies for a discount (e.g., every 5th order)
+    if ((orderCount + 1) % 5 === 0) {
+      // Generate a new discount code if it's the nth order
+      const discountCode = await generateDiscountCode();
+    }
+
+    // Process the order here (saving to DB, changing item statuses, etc.)
+    const { totalPrice, discount, discountedPrice } = await applyDiscount(
+      cartItems,
+      discountCode
     );
-    return result;
+
+    // Save the order to the database
+    const newOrder = new OrderModel({
+      product: cartItems[0].product,
+      quantity: cartItems[0].quantity,
+      totalPrice,
+      discountCode: discountCode ? discountCode : null,
+      status: 'Completed',
+    });
+
+    await newOrder.save();
+
+    return {
+      totalPrice,
+      discount,
+      discountedPrice,
+      message: 'Order placed successfully',
+    };
   } catch (error) {
-    console.error('Error checking out cart:', error);
-    throw new Error('Error checking out cart');
+    console.error('Error during checkout:', error);
+    throw new Error('Error during checkout');
   }
+};
+
+/**
+ * Generate a discount code after every nth order
+ * @returns {Promise<any>} New discount code object
+ */
+export const generateDiscountCode = async (): Promise<any> => {
+  const discountCode = 'DISCOUNT-' + Math.random().toString(36).substring(7);
+  const newDiscountCode = new DiscountCodeModel({
+    code: discountCode,
+    used: false,
+  });
+
+  await newDiscountCode.save();
+  return newDiscountCode;
 };
