@@ -170,8 +170,12 @@ export const removeItemFromCart = async (
 
     const removedPrice = cartItem.totalPrice;
     cart.items = cart.items.filter((item) => item.toString() !== cartItemId); // Use array filter to remove item
-    cart.totalPrice -= removedPrice; // Recalculate total price
-    await cart.save();
+    if (cart.items.length === 0) {
+      await cart.deleteOne();
+    } else {
+      cart.totalPrice -= removedPrice; // Recalculate total price
+      await cart.save();
+    }
 
     await CartItemModel.deleteOne({ _id: cartItemId }); // Use deleteOne instead of remove()
 
