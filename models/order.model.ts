@@ -14,7 +14,7 @@ import { Document, model, Schema } from 'mongoose';
 
 export interface OrderDocument extends Document {
   cart: Schema.Types.ObjectId;
-  total: number;
+  totalPrice: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,9 +25,24 @@ const OrderSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Cart',
     },
-    total: {
+    totalPrice: {
       type: Number,
       default: 0,
+    },
+    discountCode: {
+      type: String,
+    },
+    status: {
+      type: String,
+      default: 'Initiated',
+    },
+    discount: {
+      type: Number,
+      default: 0, // Default discount is 0
+    },
+    discountedPrice: {
+      type: Number,
+      default: 0, // Default discounted price is 0
     },
   },
   {

@@ -26,7 +26,7 @@ const router = express.Router();
 router.get('/items', getCartItems);
 
 // Route to checkout the cart
-router.post('/checkout', checkoutCartHandler);
+router.post('/checkout/:cartId', checkoutCartHandler);
 
 // POST route to add a product to the cart
 router.post('/add', addToCart);

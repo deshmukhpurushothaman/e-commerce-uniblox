@@ -97,7 +97,7 @@ export const updateCartItemQuantity = async (
       cartItem.purchasePrice * (quantity - cartItem.quantity);
     cartItem.quantity = quantity;
     cartItem.totalPrice = cartItem.purchasePrice * quantity;
-    cartItem.discountedPrice = cartItem.totalPrice * 0.9; // Adjust discounted price
+    // cartItem.discountedPrice = cartItem.totalPrice * 0.9; // Adjust discounted price
 
     await cartItem.save();
 
@@ -166,18 +166,19 @@ export const applyDiscount = async (cartId: string, discountCode: string) => {
     const discount = await getDiscountAmount(discountCode);
 
     // Apply the discount to the total price
-    const updatedTotalPrice = cart.totalPrice - discount;
+    const updatedTotalPrice =
+      cart.totalPrice - cart.totalPrice * (discount / 100);
 
     // Update the cart with the new total price and discount values
-    cart.discount = discount; // Set the discount field
-    cart.discountedPrice = updatedTotalPrice; // Set the discounted price
+    // cart.discount = discount; // Set the discount field
+    // cart.discountedPrice = updatedTotalPrice; // Set the discounted price
     cart.totalPrice = updatedTotalPrice; // Update the total price
     await cart.save();
 
     return {
       totalPrice: cart.totalPrice,
-      discount: cart.discount,
-      discountedPrice: cart.discountedPrice,
+      discount: discount,
+      discountedPrice: updatedTotalPrice,
     };
   } catch (error) {
     throw new Error(`Error applying discount: ${error.message}`);
@@ -190,10 +191,15 @@ export const applyDiscount = async (cartId: string, discountCode: string) => {
  * @returns Discount amount
  */
 const getDiscountAmount = async (discountCode: string): Promise<number> => {
-  // Mock discount calculation logic
-  if (discountCode === 'SUMMER20') {
-    return 20; // Discount of 20
-  }
+  try {
+    const discountCoupon = await DiscountCodeModel.findOne({
+      code: discountCode,
+    });
+    if (!discountCoupon || discountCoupon.used) {
+      return 0;
+    }
+    return 10;
+  } catch (error) {}
   return 0; // No discount for invalid code
 };
 
@@ -207,6 +213,8 @@ export const checkoutCart = async (cartId: string, discountCode: string) => {
   try {
     const cart = await CartModel.findById(cartId).populate('items');
     if (!cart) throw new Error('Cart not found');
+
+    if (cart.status !== 'active') throw new Error('Invalid cart');
 
     // Apply discount if applicable
     const { totalPrice, discount, discountedPrice } = await applyDiscount(
@@ -224,6 +232,9 @@ export const checkoutCart = async (cartId: string, discountCode: string) => {
 
     await newOrder.save();
 
+    cart.status = 'completed';
+    await cart.save();
+
     return {
       totalPrice,
       discount,
@@ -232,7 +243,7 @@ export const checkoutCart = async (cartId: string, discountCode: string) => {
     };
   } catch (error) {
     console.error('Error during checkout:', error);
-    throw new Error('Error during checkout');
+    throw new Error(error.message || 'Error during checkout');
   }
 };
 /**

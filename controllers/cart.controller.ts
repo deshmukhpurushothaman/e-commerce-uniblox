@@ -70,8 +70,8 @@ export const addItemToCart = async (
     } else {
       cart = new CartModel({
         totalPrice: 0,
-        discount: 0,
-        discountedPrice: 0,
+        // discount: 0,
+        // discountedPrice: 0,
         status: 'active',
         items: [],
       });
@@ -94,7 +94,7 @@ export const addItemToCart = async (
       quantity,
       purchasePrice,
       totalPrice: itemTotalPrice,
-      discountedPrice: itemTotalPrice * 0.9, // Example: 10% discount on item
+      // discountedPrice: itemTotalPrice * 0.9, // Example: 10% discount on item
     });
     await newCartItem.save();
 
@@ -102,10 +102,10 @@ export const addItemToCart = async (
     cart.items.push(newCartItem.id);
     cart.totalPrice += itemTotalPrice;
 
-    // Calculate updated discount and discounted price for the cart
-    const discount = cart.totalPrice * 0.1; // Example: 10% discount on cart total
-    cart.discount = discount;
-    cart.discountedPrice = cart.totalPrice - discount;
+    // // Calculate updated discount and discounted price for the cart
+    // const discount = cart.totalPrice * 0.1; // Example: 10% discount on cart total
+    // cart.discount = discount;
+    // cart.discountedPrice = cart.totalPrice - discount;
 
     await cart.save();
 
@@ -159,21 +159,21 @@ export const updateCartItem = async (
     );
 
     // Calculate discount and discounted price
-    const discount = updatedTotalPrice * 0.1; // Example: 10% discount
-    const discountedPrice = updatedTotalPrice - discount;
+    // const discount = updatedTotalPrice * 0.1; // Example: 10% discount
+    // const discountedPrice = updatedTotalPrice - discount;
 
     // Update and save the cart
     cart.totalPrice = updatedTotalPrice;
-    cart.discount = discount;
-    cart.discountedPrice = discountedPrice;
+    // cart.discount = discount;
+    // cart.discountedPrice = discountedPrice;
     await cart.save();
 
     res.status(HTTP_STATUS_CODE.OK).json({
       success: true,
       data: updatedCartItem,
       cartTotalPrice: cart.totalPrice,
-      cartDiscount: cart.discount,
-      cartDiscountedPrice: cart.discountedPrice,
+      // cartDiscount: cart.discount,
+      // cartDiscountedPrice: cart.discountedPrice,
     });
   } catch (error) {
     res.status(HTTP_STATUS_CODE.INTERNAL_SERVER).json({
@@ -221,13 +221,13 @@ export const removeCartItem = async (
     );
 
     // Calculate discount and discounted price
-    const discount = updatedTotalPrice * 0.1; // Example: 10% discount
-    const discountedPrice = updatedTotalPrice - discount;
+    // const discount = updatedTotalPrice * 0.1; // Example: 10% discount
+    // const discountedPrice = updatedTotalPrice - discount;
 
     // Update and save the cart
     cart.totalPrice = updatedTotalPrice;
-    cart.discount = discount;
-    cart.discountedPrice = discountedPrice;
+    // cart.discount = discount;
+    // cart.discountedPrice = discountedPrice;
     cart.items = cart.items.filter(
       (itemId: Schema.Types.ObjectId) => itemId.toString() !== cartItemId
     );
@@ -237,8 +237,8 @@ export const removeCartItem = async (
       success: true,
       message: 'Item removed from cart',
       cartTotalPrice: cart.totalPrice,
-      cartDiscount: cart.discount,
-      cartDiscountedPrice: cart.discountedPrice,
+      // cartDiscount: cart.discount,
+      // cartDiscountedPrice: cart.discountedPrice,
     });
   } catch (error) {
     res.status(HTTP_STATUS_CODE.INTERNAL_SERVER).json({
@@ -260,13 +260,6 @@ export const checkoutCartHandler = async (
 ): Promise<void> => {
   try {
     const { discountCode } = req.body;
-
-    if (!req.body.cartItems || req.body.cartItems.length === 0) {
-      res
-        .status(HTTP_STATUS_CODE.BAD_REQUEST)
-        .json({ success: false, message: 'Cart is empty' });
-      return;
-    }
 
     // Call the service method to process the checkout
     const result = await checkoutCart(req.params.cartId, discountCode);

@@ -6,8 +6,8 @@ export interface CartDocument extends Document {
   status: string; // Cart status (e.g., 'active', 'abandoned', etc.)
   createdAt: Date;
   updatedAt: Date;
-  discount?: number; // Optional field for discount
-  discountedPrice?: number; // Optional field for discounted price
+  // discount?: number; // Optional field for discount
+  // discountedPrice?: number; // Optional field for discounted price
 }
 
 const CartSchema = new Schema(
@@ -27,14 +27,6 @@ const CartSchema = new Schema(
       type: String,
       default: 'active', // Default status could be 'active'
       enum: ['active', 'abandoned', 'completed'], // Enum values for cart status
-    },
-    discount: {
-      type: Number,
-      default: 0, // Default discount is 0
-    },
-    discountedPrice: {
-      type: Number,
-      default: 0, // Default discounted price is 0
     },
   },
   {

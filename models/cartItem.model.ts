@@ -19,7 +19,7 @@ export interface CartItemDocument extends Document {
   quantity: number;
   purchasePrice: number;
   totalPrice: number;
-  discountedPrice: number;
+  // discountedPrice: number;
   status: string; // Status of the item in the cart
   createdAt: Date;
   updatedAt: Date;
@@ -51,10 +51,10 @@ const CartItemSchema = new Schema(
       type: Number,
       required: true,
     },
-    discountedPrice: {
-      type: Number,
-      required: true,
-    },
+    // discountedPrice: {
+    //   type: Number,
+    //   required: true,
+    // },
     status: {
       type: String,
       default: CART_ITEM_STATUS.Not_processed,
