@@ -4,10 +4,11 @@ This is the backend for an eCommerce store where customers can add items to thei
 
 ## Table of Contents
 
-- Overview
-- Technologies
-- Setup
-- Future Improvements
+- [Overview](#overview)
+- [Technologies](#technologies)
+- [Setup](#setup)
+- [API Documentation](#api-documentation)
+- [Future Improvements](#future-improvements)
 
 ## Overview
 
@@ -58,6 +59,10 @@ npm run dev
 ```
 
 The server will run on `PORT` in env or by default on `8000`. Ex: `http://localhost:5000`.
+
+## API Documentation
+
+The API documentation is available in the `docs` folder in the project root. You can view the detailed request/response format for all the APIs in the `docs/api-documentation.json` file.
 
 ## Future Improvements
 

@@ -1,0 +1,647 @@
+{
+  "info": {
+    "_postman_id": "4b2a16c2-a2c8-4ac3-983b-17932515d8e1",
+    "name": "E-Commerce App",
+    "description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" alt=\"\" height=\"1530\" width=\"2162\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "31785809"
+  },
+  "item": [
+    {
+      "name": "products",
+      "item": [
+        {
+          "name": "Get all products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products",
+              "host": ["{{base_url}}"],
+              "path": ["products"]
+            },
+            "description": "This GET request fetches all products from the database."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/products",
+                  "host": ["{{base_url}}"],
+                  "path": ["products"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":[{\"_id\":\"12345\",\"name\":\"Samsung Galaxy S20\",\"price\":50000,\"createdAt\":\"2024-12-01T12:00:00Z\",\"updatedAt\":\"2024-12-01T12:00:00Z\"},{\"_id\":\"12346\",\"name\":\"iPhone 13\",\"price\":60000,\"createdAt\":\"2024-12-01T12:00:00Z\",\"updatedAt\":\"2024-12-01T12:00:00Z\"}]}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Update product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful PUT request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"name\": \"Samsung Galaxy M34\",\n    \"price\": 20000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/products/67555b3fa2a7eb4838614612",
+              "host": ["{{base_url}}"],
+              "path": ["products", "67555b3fa2a7eb4838614612"]
+            },
+            "description": "This PUT request updates an existing product in the database."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{base_url}}/products/67555b3fa2a7eb4838614612",
+                  "host": ["{{base_url}}"],
+                  "path": ["products", "67555b3fa2a7eb4838614612"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"_id\":\"67555b3fa2a7eb4838614612\",\"name\":\"Samsung Galaxy M34\",\"price\":20000,\"createdAt\":\"2024-12-01T12:00:00Z\",\"updatedAt\":\"2024-12-08T12:00:00Z\"}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Post product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful POST request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"name\": \"Samsung Ultra S32\",\n    \"price\": 20000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/products",
+              "host": ["{{base_url}}"],
+              "path": ["products"]
+            },
+            "description": "This POST request creates a new product in the database."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/products",
+                  "host": ["{{base_url}}"],
+                  "path": ["products"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"_id\":\"67555b3fa2a7eb4838614613\",\"name\":\"Samsung Ultra S32\",\"price\":20000,\"createdAt\":\"2024-12-08T12:10:00Z\",\"updatedAt\":\"2024-12-08T12:10:00Z\"}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Delete product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful DELETE request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/products/67555b6fa2a7eb4838614615",
+              "host": ["{{base_url}}"],
+              "path": ["products", "67555b6fa2a7eb4838614615"]
+            },
+            "description": "This DELETE request removes an existing product from the database."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/products/67555b6fa2a7eb4838614615",
+                  "host": ["{{base_url}}"],
+                  "path": ["products", "67555b6fa2a7eb4838614615"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Get product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/67555b3fa2a7eb4838614612",
+              "host": ["{{base_url}}"],
+              "path": ["products", "67555b3fa2a7eb4838614612"]
+            },
+            "description": "This GET request retrieves a specific product by its ID."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/products/67555b3fa2a7eb4838614612",
+                  "host": ["{{base_url}}"],
+                  "path": ["products", "67555b3fa2a7eb4838614612"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"_id\":\"67555b3fa2a7eb4838614612\",\"name\":\"Samsung Galaxy S20\",\"price\":50000,\"createdAt\":\"2024-12-01T12:00:00Z\",\"updatedAt\":\"2024-12-01T12:00:00Z\"}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "item": [
+        {
+          "name": "Get orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            },
+            "description": "This GET request fetches all orders from the database."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/orders",
+                  "host": ["{{base_url}}"],
+                  "path": ["orders"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":[{\"_id\":\"67556988f951951401ceb7d5\",\"cart\":\"67556708e1e0d8eea4385bdf\",\"totalPrice\":40000,\"discountCode\":\"CHIRSTMAS2024\",\"status\":\"Completed\",\"discount\":0,\"discountedPrice\":0,\"createdAt\":\"2024-12-08T09:40:24.138Z\",\"updatedAt\":\"2024-12-08T09:40:24.138Z\",\"__v\":0}]}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Cart",
+      "description": "API for managing the user's cart, including adding, updating, removing items, and processing checkout.",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cart/items",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "items"]
+            },
+            "description": "This GET request fetches all items in the current user's cart."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/cart/items",
+                  "host": ["{{base_url}}"],
+                  "path": ["cart", "items"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":[{\"_id\":\"67556708e1e0d8eea4385be2\",\"cart\":\"67556708e1e0d8eea4385bdf\",\"product\":\"67555f6e2d02b026522a5a58\",\"quantity\":1,\"purchasePrice\":20000,\"totalPrice\":20000,\"status\":\"Not processed\",\"createdAt\":\"2024-12-08T09:29:44.756Z\",\"updatedAt\":\"2024-12-08T09:29:44.756Z\",\"__v\":0}]}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Add a new item to cart",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"productId\": \"67555b3fa2a7eb4838614612\",\r\n    \"quantity\": 1,\r\n    \"purchasePrice\": 20000,\r\n    \"cartId\": \"67556708e1e0d8eea4385bdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/add-item",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "add-item"]
+            },
+            "description": "This POST request adds a new product to the user's cart."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/cart/add-item",
+                  "host": ["{{base_url}}"],
+                  "path": ["cart", "add-item"]
+                }
+              },
+              "status": "201 Created",
+              "code": 201,
+              "body": "{\"cart\":{\"_id\":\"67556708e1e0d8eea4385bdf\",\"items\":[\"67556708e1e0d8eea4385be2\",\"6755673ae1e0d8eea4385be8\",\"6755777b2241d7c9b2ba3f09\"],\"totalPrice\":60000,\"status\":\"completed\",\"createdAt\":\"2024-12-08T09:29:44.748Z\",\"updatedAt\":\"2024-12-08T10:39:55.507Z\",\"__v\":3},\"newCartItem\":{\"cart\":\"67556708e1e0d8eea4385bdf\",\"product\":\"67555b3fa2a7eb4838614612\",\"quantity\":1,\"purchasePrice\":20000,\"totalPrice\":20000,\"status\":\"Not processed\",\"_id\":\"6755777b2241d7c9b2ba3f09\",\"createdAt\":\"2024-12-08T10:39:55.504Z\",\"updatedAt\":\"2024-12-08T10:39:55.504Z\",\"__v\":0}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Update a product quantity in Cart",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"quantity\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/update/67555f4a2d02b026522a5a51/67555f4a2d02b026522a5a54",
+              "host": ["{{base_url}}"],
+              "path": [
+                "cart",
+                "update",
+                "67555f4a2d02b026522a5a51",
+                "67555f4a2d02b026522a5a54"
+              ]
+            },
+            "description": "This PUT request updates the quantity of a specific product in the user's cart."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{base_url}}/cart/update/67555f4a2d02b026522a5a51/67555f4a2d02b026522a5a54",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "cart",
+                    "update",
+                    "67555f4a2d02b026522a5a51",
+                    "67555f4a2d02b026522a5a54"
+                  ]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"_id\":\"6755777b2241d7c9b2ba3f09\",\"cart\":\"67556708e1e0d8eea4385bdf\",\"product\":\"67555b3fa2a7eb4838614612\",\"quantity\":2,\"purchasePrice\":20000,\"totalPrice\":40000,\"status\":\"Not processed\",\"createdAt\":\"2024-12-08T10:39:55.504Z\",\"updatedAt\":\"2024-12-08T10:40:40.656Z\",\"__v\":0},\"cartTotalPrice\":80000}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Delete a product from cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cart/remove/67555f4a2d02b026522a5a51/67555fd82d02b026522a5a64",
+              "host": ["{{base_url}}"],
+              "path": [
+                "cart",
+                "remove",
+                "67555f4a2d02b026522a5a51",
+                "67555fd82d02b026522a5a64"
+              ]
+            },
+            "description": "This DELETE request removes a specific product from the user's cart."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/cart/remove/67555f4a2d02b026522a5a51/67555fd82d02b026522a5a64",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "cart",
+                    "remove",
+                    "67555f4a2d02b026522a5a51",
+                    "67555fd82d02b026522a5a64"
+                  ]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"message\":\"Item removed from cart\",\"cartTotalPrice\":40000}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"discountCode\": \"CHRISTMAS2024\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/checkout/67556708e1e0d8eea4385bdf",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "checkout", "67556708e1e0d8eea4385bdf"]
+            },
+            "description": "This POST request initiates the checkout process for the user's cart, applying any discounts if provided."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/cart/checkout/67556708e1e0d8eea4385bdf",
+                  "host": ["{{base_url}}"],
+                  "path": ["cart", "checkout", "67556708e1e0d8eea4385bdf"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"body\":{\"cartId\":\"67556708e1e0d8eea4385bdf\",\"totalPrice\":38000,\"discountCode\":\"CHRISTMAS2024\",\"finalPrice\":34000,\"status\":\"Checkout Successful\"}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "admin",
+      "description": "API for admin-related functionalities like generating discount codes and fetching platform statistics.",
+      "item": [
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/stats",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "stats"]
+            },
+            "description": "This GET request retrieves key statistics about the platform, such as user count, order count, and other vital metrics."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/admin/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "stats"]
+                }
+              },
+              "status": "200 OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"totalItemsPurchased\":2,\"totalPurchaseAmount\":40000,\"totalDiscountAmount\":0,\"totalDiscountedPrice\":0,\"discountCodes\":[\"CHIRSTMAS2024\"]}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Generate Discount Code",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {},
+            "url": {
+              "raw": "{{base_url}}/admin/generate-discount",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "generate-discount"]
+            },
+            "description": "This POST request generates a new discount code that can be used by customers during checkout."
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/admin/generate-discount",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "generate-discount"]
+                }
+              },
+              "status": "201 Created",
+              "code": 201,
+              "body": "{\"success\":true,\"data\":{\"code\":\"DISCOUNT-qgvath\",\"used\":false,\"_id\":\"6755782a2241d7c9b2ba3f20\",\"__v\":0}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "id",
+      "value": "1"
+    },
+    {
+      "key": "base_url",
+      "value": "https://postman-rest-api-learner.glitch.me/"
+    }
+  ]
+}
